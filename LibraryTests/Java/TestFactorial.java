@@ -21,12 +21,10 @@ class TestFactorial {
 
         for (Long trial = startingValue; trial <= upperBound; trial += step) {
             // Actual calculation
-            long start = System.nanoTime();
             BigInteger bigInteger = new BigInteger("1");
+            long start = System.nanoTime();
             for (long i = 1; i <= trial; i++) {
                 bigInteger = bigInteger.multiply(BigInteger.valueOf(i));
-                //COMMENT THIS TO GET MORE ACCURATE RESULTS
-                //System.out.printf("\rRunning %d!:\t\t%3.2f%%",trial,(float)i/trial * 100);
             }
             long end = System.nanoTime();
 

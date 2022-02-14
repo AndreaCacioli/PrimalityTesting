@@ -27,10 +27,10 @@ int main(int argc, char const *argv[])
     //Calculating the specified number of times
     for (long trial = startingValue; trial <= endingValue; trial += step)
     {
-        start = clock();
         // Initialization
         mpz_init_set_ui(n, 1);
         mpz_init(mult);
+        start = clock();
         // Actual Calculation
         for (long i = 1; i <= trial; i++)
         {
