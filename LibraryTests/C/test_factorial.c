@@ -24,7 +24,6 @@ int main(int argc, char const *argv[])
     fprintf(file, "Value,Time Taken to Process Factorial (C)\n");
     fflush(file);
 
-
     //Calculating the specified number of times
     for (long trial = startingValue; trial <= endingValue; trial += step)
     {
@@ -40,11 +39,11 @@ int main(int argc, char const *argv[])
         }
         end = clock();
         cpuTimeUsed = ((double)(end - start)) / CLOCKS_PER_SEC;
-        long timeInNanoseconds = cpuTimeUsed * 1000000;
+        long timeInMicroseconds = cpuTimeUsed * 1000000;
 
         // Printing the result
-        printf("\nTime taken by %ld! = %ld nanoseconds\n", trial, timeInNanoseconds);
-        fprintf(file,"%ld,%ld\n",trial, timeInNanoseconds);
+        printf("\nTime taken by %ld! = %ld microseconds\n", trial, timeInMicroseconds);
+        fprintf(file,"%ld,%ld\n",trial, timeInMicroseconds);
         fflush(file);
     }
 

@@ -1,8 +1,9 @@
 import java.io.File;
 import java.io.PrintWriter;
 import java.math.BigInteger;
+import java.util.Random;
 
-class Test {
+class TestAssignment {
     public static void main(String[] args) {
         // Declaration and initialization
         Long startingValue = Long.parseLong(args[0]);
@@ -11,32 +12,36 @@ class Test {
         PrintWriter printWriter = null;
 
         try {
-            printWriter = new PrintWriter(new File("./JavaFactorialResults.csv"));
-            printWriter.write("Value,Time Taken to Process Factorial (Java)\n");
+            printWriter = new PrintWriter(new File("./JavaAssignmentResults.csv"));
+            printWriter.write("Value,Time Taken to Assign Values (Java)\n");
             printWriter.flush();
         } catch (Exception e) {
             e.printStackTrace();
             return;
         }
 
+        Random random = new Random();
+        Character[] numbers = new Character[]{'0','1','2','3','4','5','6','7','8','9'};
+
         for (Long trial = startingValue; trial <= upperBound; trial += step) {
+
+            String str = new String();
+            for(long i = 0 ; i < trial; i++)
+            {
+                str += numbers[random.nextInt(numbers.length)];
+            }
+
             // Actual calculation
             long start = System.nanoTime();
-            BigInteger bigInteger = new BigInteger("1");
-            for (long i = 1; i <= trial; i++) {
-                bigInteger = bigInteger.multiply(BigInteger.valueOf(i));
-                //COMMENT THIS TO GET MORE ACCURATE RESULTS
-                //System.out.printf("\rRunning %d!:\t\t%3.2f%%",trial,(float)i/trial * 100);
-            }
+            BigInteger bigInteger = new BigInteger(str);
             long end = System.nanoTime();
 
             // Write the result to the file
-            printWriter.println(trial + "," + (end - start));
+            printWriter.println(trial + "," + (end - start) / 1000);
             printWriter.flush();
             // Showing the result
             //System.out.println(trial + "! = " + bigInteger.toString());
-            System.out.println("\nCalculation of " + trial + "! took " + (end - start) + " nanoSeconds");
-
+            System.out.println("\nAssignment of a random " + trial + " characters long number took " + (end - start) / 1000 + " microSeconds");
         }
 
         printWriter.close();
