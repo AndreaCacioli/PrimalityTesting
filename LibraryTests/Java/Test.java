@@ -12,7 +12,7 @@ class Test {
 
         try {
             printWriter = new PrintWriter(new File("./JavaFactorialResults.csv"));
-            printWriter.write("Value,Time Taken to Process Factorial\n");
+            printWriter.write("Value,Time Taken to Process Factorial (Java)\n");
             printWriter.flush();
         } catch (Exception e) {
             e.printStackTrace();
