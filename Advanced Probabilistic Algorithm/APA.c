@@ -1,15 +1,44 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <gmp.h>
 
 int test(mpz_t x, long k);
 
 int main(int argc, char const *argv[])
 {
+    char* message = "Welcome to the Primality Test, please follow this syntax:\n\t-x Per indicare il valore da testare.\n\t-t per indicare il numero di test da superare per poter essere considerato primo.\n";
+    int t = 8;
     mpz_t x;
-    mpz_init_set_str(x, argv[1], 10);
 
-    gmp_printf("The number %Zd is %s\n", x, test(x,20) == 1 ? "Probably Prime!" : "Composite");
+    if(argc != 5)
+    {
+        puts(message);
+        printf("%d", argc);
+        return 0;
+    }
+    else
+    {
+        for(int i = 1; i < argc; i++)
+        {
+            if(strcmp("-x", argv[i]) == 0)
+            {
+                mpz_init_set_str(x, argv[++i], 10);
+                printf("x set!\n");
+            }
+            else if(strcmp("-t", argv[i]) == 0)
+            {
+                t = atoi(argv[++i]);
+                printf("t set!\n");
+            }
+            else{
+                puts(message);
+                exit(0);
+            }
+        }
+    }
+
+    gmp_printf("The number %Zd is %s\n", x, test(x,t) == 1 ? "Probably Prime!" : "Composite");
 
     return 0;
 }
