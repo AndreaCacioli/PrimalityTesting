@@ -7,9 +7,9 @@ int test(mpz_t x, long k);
 int main(int argc, char const *argv[])
 {
     mpz_t x;
-    mpz_init_set_ui(x, 7919);
+    mpz_init_set_str(x, argv[1], 10);
 
-    gmp_printf("The number %Zd is %s\n", x, test(x,7000) == 1 ? "Probably Prime!" : "Composite");
+    gmp_printf("The number %Zd is %s\n", x, test(x,20) == 1 ? "Probably Prime!" : "Composite");
 
     return 0;
 }
@@ -25,6 +25,8 @@ int main(int argc, char const *argv[])
  */
 int test(mpz_t x, long k)
 {
+    long number_of_subdivisions;
+    mpz_t* sequence;
     //Generating the seed
     gmp_randstate_t state;
     gmp_randinit_default(state);
@@ -42,7 +44,7 @@ int test(mpz_t x, long k)
         mpz_init(x_copy);
         mpz_set(x_copy,x);
 
-        //extract random value
+        //extract random value between 1 and x-1
         mpz_t a;
         mpz_init(a);
         mpz_urandomm(a, state, x_minus_one);
@@ -55,21 +57,26 @@ int test(mpz_t x, long k)
         mpz_powm(fermat,a,x,x);  //fermat = a ^ (x) mod x
         if(mpz_cmp(fermat,a) != 0)
         {
-            gmp_printf("Fermat test FAILED at %Zd\n", a); 
+            gmp_printf("Fermat test FAILED at %Zd❌\n", a); 
             return 0; //x is composite
         } 
         // Fermat Test passed at a
-        gmp_printf("Fermat test PASSED at %Zd\n", a);
+        gmp_printf("Fermat test PASSED at %Zd ✅\n", a);
 
         //Calculate the amount of elements in the sequence which is equal to the number of zeros at the least significant positions
-        long number_of_subdivisions = mpz_scan1(x_minus_one,0) + 1;
-        printf("found the number of subdivision to be %ld\n", number_of_subdivisions);
-        mpz_t* sequence = malloc(sizeof(mpz_t) * number_of_subdivisions);
+        if(i == 0)
+        {
+            number_of_subdivisions = mpz_scan1(x_minus_one,0) + 1;
+            printf("found the number of subdivision to be %ld\n", number_of_subdivisions);
+            sequence = malloc(sizeof(mpz_t) * number_of_subdivisions);
+        }
+        
+
         mpz_sub_ui(x_copy,x_copy,1); //x_copy -= 1;
         for(int j = 0; j< number_of_subdivisions; j++)
         {
             //Save the result
-            mpz_init(sequence[j]);
+            if(i == 0) mpz_init(sequence[j]);
             mpz_powm(sequence[j], a, x_copy, x);
             gmp_printf("%Zd ^ %Zd = %Zd (mod %Zd)\n", a, x_copy, sequence[j], x);
             //Shift the input to the right by one
@@ -95,12 +102,14 @@ int test(mpz_t x, long k)
                 break;
             }
         }
-        free(sequence);
         if(!condition1 && !condition2) 
         {
-            gmp_printf("Miller test failed:\n\tcondition1: %d,\n\tcondition2: %d\n",condition1, condition2);
+            gmp_printf("Miller test FAILED❌:\n\tcondition1: %d,\n\tcondition2: %d\n",condition1, condition2);
             return 0; //x is composite
+        }else{
+            gmp_printf("Miller test PASSED✅:\n\tcondition1: %d,\n\tcondition2: %d\n",condition1, condition2);
         }
     }
+    free(sequence);
     return 1; //x is probably prime
 } 
