@@ -24,12 +24,10 @@ int main(int argc, char const *argv[])
             if(strcmp("-x", argv[i]) == 0)
             {
                 mpz_init_set_str(x, argv[++i], 10);
-                printf("x set!\n");
             }
             else if(strcmp("-t", argv[i]) == 0)
             {
                 t = atoi(argv[++i]);
-                printf("t set!\n");
             }
             else{
                 puts(message);
@@ -44,7 +42,7 @@ int main(int argc, char const *argv[])
 }
 
 /**
- *  @brief A function that performs the primality test
+ * @brief A function that performs the primality test
  * 
  * @returns  -1 if there is an error, 1 if the number is probably prime, 0 if the number is composite.
  * 
@@ -54,6 +52,8 @@ int main(int argc, char const *argv[])
  */
 int test(mpz_t x, long k)
 {
+    if(mpz_cmp_ui(x,2) == 0) return 1;
+    else if(mpz_tstbit(x, 0) == 0) return 0;
     long number_of_subdivisions;
     mpz_t* sequence;
     //Generating the seed
@@ -95,7 +95,7 @@ int test(mpz_t x, long k)
         //Calculate the amount of elements in the sequence which is equal to the number of zeros at the least significant positions
         if(i == 0)
         {
-            number_of_subdivisions = mpz_scan1(x_minus_one,0) + 1;
+            number_of_subdivisions = mpz_scan1(x_minus_one,0);
             printf("found the number of subdivision to be %ld\n", number_of_subdivisions);
             sequence = malloc(sizeof(mpz_t) * number_of_subdivisions);
         }
@@ -106,10 +106,11 @@ int test(mpz_t x, long k)
         {
             //Save the result
             if(i == 0) mpz_init(sequence[j]);
-            mpz_powm(sequence[j], a, x_copy, x);
-            gmp_printf("%Zd ^ %Zd = %Zd (mod %Zd)\n", a, x_copy, sequence[j], x);
             //Shift the input to the right by one
             mpz_fdiv_q_2exp(x_copy,x_copy,1);
+            mpz_powm(sequence[j], a, x_copy, x);
+            gmp_printf("%Zd ^ %Zd = %Zd (mod %Zd)\n", a, x_copy, sequence[j], x);
+           
         }
         //Now the sequence contains the powers of a in decreasing order
         gmp_printf("Sequence: [");
@@ -121,23 +122,26 @@ int test(mpz_t x, long k)
         
         //We check if the last element is 1 or if any of the others is x-1
         int condition1 = mpz_cmp_ui(sequence[number_of_subdivisions - 1], 1) == 0;
-        int condition2 = 0;
-
-        for(int j = number_of_subdivisions - 1; j>=0; j--)
+        if(!condition1)
         {
-            if(mpz_cmp(sequence[j], x_minus_one) == 0)
-            { 
-                condition2 = 1;
-                break;
+             int condition2 = 0;
+
+            for(int j = number_of_subdivisions - 1; j>=0; j--)
+            {
+                if(mpz_cmp(sequence[j], x_minus_one) == 0)
+                { 
+                    condition2 = 1;
+                    break;
+                }
+            }
+            if(!condition2) 
+            {
+                gmp_printf("Miller test FAILED❌:\n\tcondition1: %d,\n\tcondition2: %d\n",condition1, condition2);
+                return 0; //x is composite
             }
         }
-        if(!condition1 && !condition2) 
-        {
-            gmp_printf("Miller test FAILED❌:\n\tcondition1: %d,\n\tcondition2: %d\n",condition1, condition2);
-            return 0; //x is composite
-        }else{
-            gmp_printf("Miller test PASSED✅:\n\tcondition1: %d,\n\tcondition2: %d\n",condition1, condition2);
-        }
+        gmp_printf("Miller test PASSED✅\n");
+       
     }
     free(sequence);
     return 1; //x is probably prime
