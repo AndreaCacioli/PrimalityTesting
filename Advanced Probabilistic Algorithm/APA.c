@@ -1,20 +1,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <gmp.h>
 
 int test(mpz_t x, long k);
 
 int main(int argc, char const *argv[])
 {
-    char* message = "Welcome to the Primality Test, please follow this syntax:\n\t-x Per indicare il valore da testare.\n\t-t per indicare il numero di test da superare per poter essere considerato primo.\n";
+    char* message = "Welcome to the Primality Test, please follow this syntax:\n\t-x Per indicare il valore da testare.\n\t-t per indicare il numero di test da superare per poter essere considerato primo.\n\t-r Per indicare che si vuole operare su un insieme di valori [start] [finish] [step]\n\t-s Per salvare il tempo di esecuzione in un file .csv";
     int t = 8;
-    mpz_t x;
+    mpz_t start;
+    mpz_t end;
+    mpz_t step;
+    int save = 0;
 
-    if(argc != 5)
+    if(argc < 5)
     {
         puts(message);
-        printf("%d", argc);
         return 0;
     }
     else
@@ -23,12 +26,23 @@ int main(int argc, char const *argv[])
         {
             if(strcmp("-x", argv[i]) == 0)
             {
-                mpz_init_set_str(x, argv[++i], 10);
+                i++;
+                mpz_init_set_str(start, argv[i], 10);
+                mpz_init_set_str(end, argv[i], 10);
             }
             else if(strcmp("-t", argv[i]) == 0)
             {
                 t = atoi(argv[++i]);
             }
+            else if(strcmp("-r", argv[i]) == 0){
+                mpz_init_set_str(start, argv[++i], 10);
+                mpz_init_set_str(end, argv[++i], 10);
+                mpz_init_set_str(step, argv[++i], 10);
+            }
+            else if(strcmp("-s", argv[i]) == 0){
+                save = 1;
+            }
+            
             else{
                 puts(message);
                 exit(0);
@@ -36,15 +50,39 @@ int main(int argc, char const *argv[])
         }
     }
 
-    gmp_printf("The number %Zd is %s\n", x, test(x,t) == 1 ? "Probably Prime!" : "Composite");
+    gmp_printf("\n .\tStart: %Zd\n .\tEnd: %Zd\n .\tStep: %Zd\n .\tsaving: %s\n .\tTrials: %d\n" ,start, end , step, (save == 1) ? "true" : "false", t);
 
+    FILE *file;
+    if(save)
+    {
+        file = fopen("./AdvancedAlgorithmStats.csv", "w");
+    } 
+
+    while(mpz_cmp(start, end) <= 0)
+    {
+        
+        clock_t startTime = clock();
+        //What will be measured
+        int ret = test(start, t);
+        clock_t endTime = clock();
+        double cpuTimeUsed = ((double)(endTime - startTime)) / CLOCKS_PER_SEC;
+        long timeInMicroiseconds = cpuTimeUsed * 1000000;
+        gmp_printf("\nTime elapsed for %Zd: \t%ld µs", start, timeInMicroiseconds);
+        if(save)
+        {
+            gmp_fprintf(file,"%Zd,%d,%d\n",start, timeInMicroiseconds, ret);
+            fflush(file);
+        }
+        mpz_add(start, start, step);
+    }
+    fclose(file);
     return 0;
 }
 
 /**
  * @brief A function that performs the primality test
  * 
- * @returns  -1 if there is an error, 1 if the number is probably prime, 0 if the number is composite.
+ * @returns 1 if the number is probably prime, 0 if the number is composite.
  * 
  * @param x Number to understand wether it is prime or composite.
  * @param k Number of trials.
@@ -86,17 +124,17 @@ int test(mpz_t x, long k)
         mpz_powm(fermat,a,x,x);  //fermat = a ^ (x) mod x
         if(mpz_cmp(fermat,a) != 0)
         {
-            gmp_printf("Fermat test FAILED at %Zd❌\n", a); 
+            //gmp_printf("Fermat test FAILED at %Zd❌\n", a); 
             return 0; //x is composite
         } 
         // Fermat Test passed at a
-        gmp_printf("Fermat test PASSED at %Zd ✅\n", a);
+        //gmp_printf("Fermat test PASSED at %Zd ✅\n", a);
 
         //Calculate the amount of elements in the sequence which is equal to the number of zeros at the least significant positions
         if(i == 0)
         {
             number_of_subdivisions = mpz_scan1(x_minus_one,0);
-            printf("found the number of subdivision to be %ld\n", number_of_subdivisions);
+            //printf("found the number of subdivision to be %ld\n", number_of_subdivisions);
             sequence = malloc(sizeof(mpz_t) * number_of_subdivisions);
         }
         
@@ -109,16 +147,16 @@ int test(mpz_t x, long k)
             //Shift the input to the right by one
             mpz_fdiv_q_2exp(x_copy,x_copy,1);
             mpz_powm(sequence[j], a, x_copy, x);
-            gmp_printf("%Zd ^ %Zd = %Zd (mod %Zd)\n", a, x_copy, sequence[j], x);
+            //gmp_printf("%Zd ^ %Zd = %Zd (mod %Zd)\n", a, x_copy, sequence[j], x);
            
         }
         //Now the sequence contains the powers of a in decreasing order
-        gmp_printf("Sequence: [");
+        //gmp_printf("Sequence: [");
         for(int j = 0; j < number_of_subdivisions-1; j++)
         {
-            gmp_printf("%Zd, ", sequence[j]);
+            //gmp_printf("%Zd, ", sequence[j]);
         }
-        gmp_printf("%Zd]\n", sequence[number_of_subdivisions - 1]);
+        //gmp_printf("%Zd]\n", sequence[number_of_subdivisions - 1]);
         
         //We check if the last element is 1 or if any of the others is x-1
         int condition1 = mpz_cmp_ui(sequence[number_of_subdivisions - 1], 1) == 0;
@@ -136,11 +174,11 @@ int test(mpz_t x, long k)
             }
             if(!condition2) 
             {
-                gmp_printf("Miller test FAILED❌:\n\tcondition1: %d,\n\tcondition2: %d\n",condition1, condition2);
+                //gmp_printf("Miller test FAILED❌:\n\tcondition1: %d,\n\tcondition2: %d\n",condition1, condition2);
                 return 0; //x is composite
             }
         }
-        gmp_printf("Miller test PASSED✅\n");
+        //gmp_printf("Miller test PASSED✅\n");
        
     }
     free(sequence);
