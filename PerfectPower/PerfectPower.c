@@ -11,8 +11,8 @@ int main()
     mpz_init(x);
     mpz_init(res);
 
-    mpz_set_ui(x, 500);
-    unsigned long root = 15; 
+    mpz_set_ui(x, 999999999);
+    unsigned long root = 12; 
 
     int_root(res, x, root);
 
@@ -55,13 +55,15 @@ void int_root(mpz_t res, mpz_t x, unsigned long n)
     mpf_init2(solution_precision, precision);
 
     mpf_set_d(solution_precision, 0.5); //we stop when we reach 1/2 precision
-    mpf_set_d(diff, 1000);
+    mpf_set_d(diff, 1);
     mpf_set_z(xk,x);
     mpf_set_z(x_const,x);
+    mpf_set_ui(tmp, 0);
+    mpf_set_ui(y, 0);
 
     int i = 0;
 
-    while(mpf_cmp(diff, solution_precision) > 0) 
+    while(mpf_cmp(diff, solution_precision) >= 0) 
     {
         //Now we calculate the new value of x, but first we store the old one in y
         mpf_set(y,xk);
@@ -74,14 +76,18 @@ void int_root(mpz_t res, mpz_t x, unsigned long n)
 
         i++;
 
-        gmp_printf("The %dth term of the succession is: %Ff\n", i, xk);
+        gmp_printf("The %dth term of the succession is:\t%Ff\n", i, xk);
         mpf_pow_ui(diff, xk, n);
         mpf_sub(diff, diff, x_const); //diff = xk^n - x
+        gmp_printf("Current Error:\t%Ff (Stopping when the error is less than 0.5)\n", diff);
 
     }
     mpz_set_f(res, xk); //This function also truncates the number
+
     mpf_clear (xk);
     mpf_clear (x_const);
     mpf_clear (tmp);
+    mpf_clear(solution_precision);
+    mpf_clear(diff);
     mpf_clear (y);
 }
