@@ -1,19 +1,46 @@
 #include <gmp.h>
 #include <stdio.h>
 #include <time.h>
+#include <string.h>
+#include <stdlib.h>
 
 void int_root(mpz_t res, mpz_t x, unsigned long n);
 
-int main()
+int main(int argc, char** argv)
 {
-    mpz_t res;
+
     mpz_t x;
     mpz_init(x);
-    mpz_init(res);
 
-    mpz_set_ui(x, 999999999);
     unsigned long root = 12; 
 
+    char* message = "Welcome to the Newton Root Approximation Test\nPlease specify the nth root after a \t-n\nPlease specify the value after a \t-x";
+    if(argc < 5)
+    {
+        puts(message);
+        return 0;
+    }
+    else
+    {
+        for(int i = 1; i < argc; i++)
+        {
+            if(strcmp("-x", argv[i]) == 0)
+            {
+                mpz_set_str(x, argv[++i], 10);
+            }
+            else if(strcmp("-n", argv[i]) == 0)
+            {
+                root = atoi(argv[++i]);
+            }
+            else{
+                puts(message);
+                exit(0);
+            }
+        }
+    }
+    
+    mpz_t res;
+    mpz_init(res);
     int_root(res, x, root);
 
     gmp_printf("\nThe final result of the calculation %d√(%Zd) is %Zd\n",root, x, res);
@@ -47,9 +74,9 @@ void int_root(mpz_t res, mpz_t x, unsigned long n)
     mpf_t tmp;
     mpf_t diff;
 
-    mpf_init2 (xk, precision);
-    mpf_init2 (y, precision);
-    mpf_init2 (x_const, precision);
+    mpf_init2(xk, precision);
+    mpf_init2(y, precision);
+    mpf_init2(x_const, precision);
     mpf_init2(tmp, precision);
     mpf_init2(diff, precision);
     mpf_init2(solution_precision, precision);
@@ -84,10 +111,10 @@ void int_root(mpz_t res, mpz_t x, unsigned long n)
     }
     mpz_set_f(res, xk); //This function also truncates the number
 
-    mpf_clear (xk);
-    mpf_clear (x_const);
-    mpf_clear (tmp);
+    mpf_clear(xk);
+    mpf_clear(x_const);
+    mpf_clear(tmp);
     mpf_clear(solution_precision);
     mpf_clear(diff);
-    mpf_clear (y);
+    mpf_clear(y);
 }
