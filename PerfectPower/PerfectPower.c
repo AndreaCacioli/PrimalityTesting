@@ -11,12 +11,12 @@ int main()
     mpz_init(x);
     mpz_init(res);
 
-    mpz_set_ui(x, 50);
-    unsigned long root = 10; 
+    mpz_set_ui(x, 500);
+    unsigned long root = 15; 
 
     int_root(res, x, root);
 
-    gmp_printf("\nThe final result of the calculation is %Zd\n", res);
+    gmp_printf("\nThe final result of the calculation %d√(%Zd) is %Zd\n",root, x, res);
     gmp_printf("%Zd ^ %d = ", res, root);
     mpz_pow_ui(res, res, root);
     gmp_printf("%Zd\n", res);
@@ -61,7 +61,7 @@ void int_root(mpz_t res, mpz_t x, unsigned long n)
 
     int i = 0;
 
-    while(mpf_cmp(diff, solution_precision) <= 0)
+    while(mpf_cmp(diff, solution_precision) > 0) 
     {
         //Now we calculate the new value of x, but first we store the old one in y
         mpf_set(y,xk);
@@ -75,7 +75,8 @@ void int_root(mpz_t res, mpz_t x, unsigned long n)
         i++;
 
         gmp_printf("The %dth term of the succession is: %Ff\n", i, xk);
-        mpf_sub(diff, y, xk); //diff = y - xk;
+        mpf_pow_ui(diff, xk, n);
+        mpf_sub(diff, diff, x_const); //diff = xk^n - x
 
     }
     mpz_set_f(res, xk); //This function also truncates the number
