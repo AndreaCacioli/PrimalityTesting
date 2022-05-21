@@ -160,10 +160,8 @@ void int_root(mpz_t res, mpz_t x, unsigned long n)
 
         i++;
 
-        gmp_printf("The %dth term of the succession is:\t%Ff\n", i, xk);
         mpf_pow_ui(diff, xk, n);
         mpf_sub(diff, diff, x_const); //diff = xk^n - x
-        gmp_printf("Current Error:\t%Ff (Stopping when the error is less than 0.5)\n", diff);
     }
    
     mpz_set_f(res, xk); //This function also truncates the number

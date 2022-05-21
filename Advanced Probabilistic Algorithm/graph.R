@@ -15,5 +15,5 @@ plot(input_time$Input, input_time$Time.In.Microseconds, ylab = "Time (µs)", xla
                                                                                                   ifelse(input_time$Sequence.Length == 3, 'blue', 
                                                                                                   'black'))))
 library(ggplot2)
-#ggplot(input_time, aes(x = Input, y = Time.In.Microseconds)) + geom_point() + stat_smooth()
+ggplot(input_time, aes(x = Input, y = Time.In.Microseconds)) + stat_smooth()
 
