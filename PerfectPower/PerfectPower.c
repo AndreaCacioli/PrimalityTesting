@@ -1,5 +1,5 @@
-#include <gmp.h>
 #include <stdio.h>
+#include <gmp.h>
 #include <time.h>
 #include <string.h>
 #include <stdlib.h>
@@ -9,12 +9,21 @@ void int_root(mpz_t res, mpz_t x, unsigned long n);
 int main(int argc, char** argv)
 {
 
-    mpz_t x;
-    mpz_init(x);
+    int save = 0;
+    mpz_t start;
+    mpz_t end;
+    mpz_t step;
+    unsigned long startexp;
+    unsigned long endexp;
+    unsigned long stepexp;
+    mpz_t result;
 
-    unsigned long root = 12; 
+    mpz_init(start);
+    mpz_init(end);
+    mpz_init(step);
+    mpz_init(result);
 
-    char* message = "Welcome to the Newton Root Approximation Test\nPlease specify the nth root after a \t-n\nPlease specify the value after a \t-x";
+    char* message = "Welcome to the Newton Root Approximation Test\nPlease specify the nth root after a \t-n\nPlease specify the value after a \t-x\nBoth of the previous flags can be used in a range if needed: just use -xrange [start_value_for_x] [end_value_for_x] [x_step]\nIf you wish to save your calculations along with execution time in a csv file, use -s\n";
     if(argc < 5)
     {
         puts(message);
@@ -26,11 +35,31 @@ int main(int argc, char** argv)
         {
             if(strcmp("-x", argv[i]) == 0)
             {
-                mpz_set_str(x, argv[++i], 10);
+                mpz_set_str(start, argv[++i], 10);
+                mpz_set_str(end, argv[i], 10);
+                mpz_set_ui(step, 1);
+            }
+            else if(strcmp("-xrange", argv[i]) == 0)
+            {
+                mpz_set_str(start, argv[++i], 10);
+                mpz_set_str(end, argv[++i], 10);
+                mpz_set_str(step, argv[++i], 10);
             }
             else if(strcmp("-n", argv[i]) == 0)
             {
-                root = atoi(argv[++i]);
+                startexp = atoi(argv[++i]);
+                endexp = atoi(argv[i]);
+                stepexp = 1;
+            }
+            else if(strcmp("-nrange", argv[i]) == 0)
+            {
+                startexp = atoi(argv[++i]);
+                endexp = atoi(argv[++i]);
+                stepexp = atoi(argv[++i]);
+            }
+            else if(strcmp("-s", argv[i]) == 0)
+            {
+                save = 1;
             }
             else{
                 puts(message);
@@ -39,15 +68,43 @@ int main(int argc, char** argv)
         }
     }
     
-    mpz_t res;
-    mpz_init(res);
-    int_root(res, x, root);
+    gmp_printf("\n .\tStart: %Zd\n .\tEnd: %Zd\n .\tStep: %Zd\n .\tsaving: %s\n .\n" ,start, end , step, (save == 1) ? "true" : "false");
 
-    gmp_printf("\nThe final result of the calculation %d√(%Zd) is %Zd\n",root, x, res);
-    gmp_printf("%Zd ^ %d = ", res, root);
-    mpz_pow_ui(res, res, root);
-    gmp_printf("%Zd\n", res);
+    FILE *file;
+    if(save)
+    {
+        char str[10000];
+        gmp_sprintf(str, "PP%Zd-%Zd-%Zd|%ld-%ld-%ld.csv", start, end, step, startexp, endexp, stepexp);
+        file = fopen(str, "w");
+        if(file == NULL){
+            printf("An error while opening the file occurred.\n");
+            file = fopen("NameTooLong.csv", "w");
+        }
+    } 
 
+    if(save) gmp_fprintf(file,"Input, Root, Time In Microseconds, Result\n");
+
+    while(mpz_cmp(start, end) <= 0)
+    {
+        for(unsigned long i = startexp; i <= endexp; i += stepexp)
+        {
+            clock_t startTime = clock();
+            int_root(result, start, i);
+            clock_t endTime = clock();
+            double cpuTimeUsed = ((double)(endTime - startTime)) / CLOCKS_PER_SEC;
+            long timeInMicroiseconds = cpuTimeUsed * 1000000;
+
+            gmp_printf("%ld√%Zd = %Zd\n", i, start, result);
+            if(save)
+            {
+                gmp_fprintf(file,"%Zd,%ld,%ld,%Zd\n",start, i, timeInMicroiseconds, result);
+                fflush(file);
+            }
+        }
+
+        mpz_add(start, start, step);
+    }
+    if(save) fclose(file);
     return 0;
 }
 
@@ -107,8 +164,8 @@ void int_root(mpz_t res, mpz_t x, unsigned long n)
         mpf_pow_ui(diff, xk, n);
         mpf_sub(diff, diff, x_const); //diff = xk^n - x
         gmp_printf("Current Error:\t%Ff (Stopping when the error is less than 0.5)\n", diff);
-
     }
+   
     mpz_set_f(res, xk); //This function also truncates the number
 
     mpf_clear(xk);
