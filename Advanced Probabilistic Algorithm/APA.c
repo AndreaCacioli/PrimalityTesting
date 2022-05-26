@@ -75,7 +75,7 @@ int main(int argc, char const *argv[])
         clock_t endTime = clock();
         double cpuTimeUsed = ((double)(endTime - startTime)) / CLOCKS_PER_SEC;
         long timeInMicroiseconds = cpuTimeUsed * 1000000;
-        gmp_printf("\nTime elapsed for %Zd: \t%ld µs, Length of the sequence: \t%d\n", start, timeInMicroiseconds, lenseq);
+        gmp_printf("%Zd is deemed %s, it took the algorithm %ld µs and a sequence of %d elements\n", start, ret ? "PRIME" : "NOT PRIME", timeInMicroiseconds, lenseq);
         if(save)
         {
             gmp_fprintf(file,"%Zd,%d,%d,%d\n",start, timeInMicroiseconds, ret, lenseq);
@@ -84,6 +84,11 @@ int main(int argc, char const *argv[])
         mpz_add(start, start, step);
     }
     if(save) fclose(file);
+
+    mpz_clear(start);
+    mpz_clear(end);
+    mpz_clear(step);
+
     return 0;
 }
 
@@ -107,14 +112,14 @@ int test(mpz_t x, long k, int* length_of_sequence)
     gmp_randstate_t state;
     gmp_randinit_default(state);
 
-    //x - 1
-    mpz_t x_minus_one;
-    mpz_init(x_minus_one);
-    mpz_sub_ui(x_minus_one,x,1); 
-
     //For k trials
     for (int i = 0; i < k; i++)
     {
+        //x - 1
+        mpz_t x_minus_one;
+        mpz_init(x_minus_one);
+        mpz_sub_ui(x_minus_one,x,1); 
+
         //A copy of x we will work on
         mpz_t x_copy;
         mpz_init(x_copy);
@@ -132,8 +137,13 @@ int test(mpz_t x, long k, int* length_of_sequence)
         mpz_powm(fermat,a,x,x);  //fermat = a ^ (x) mod x
         if(mpz_cmp(fermat,a) != 0)
         {
+            mpz_clear(x_minus_one);
+            mpz_clear(x_copy);
+            mpz_clear(a);
+            mpz_clear(fermat);
             return 0; //x is composite
         } 
+        mpz_clear(fermat);
 
         //Calculate the amount of elements in the sequence which is equal to the number of zeros at the least significant positions
         if(i == 0)
@@ -148,11 +158,13 @@ int test(mpz_t x, long k, int* length_of_sequence)
         for(int j = 0; j < number_of_subdivisions; j++)
         {
             //Save the result
-            if(i == 0) mpz_init(sequence[j]);
+            if(i == 0) mpz_init_set_ui(sequence[j], 0);
             //Shift the input to the right by one
-            mpz_fdiv_q_2exp(x_copy,x_copy,1);
+            mpz_fdiv_q_2exp(x_copy,x_copy,1); //x_copy /= 2
             mpz_powm(sequence[j], a, x_copy, x);
         }
+        mpz_clear(x_copy);
+        mpz_clear(a);
         //Now the sequence contains the powers of a in decreasing order
         
         //We check if the last element is 1 or if any of the others is x-1
@@ -163,18 +175,19 @@ int test(mpz_t x, long k, int* length_of_sequence)
 
             for(int j = number_of_subdivisions - 1; j>=0; j--)
             {
-                if(mpz_cmp(sequence[j], x_minus_one) == 0)
+                int cmp = mpz_cmp(sequence[j], x_minus_one);
+                if(cmp == 0)
                 { 
                     condition2 = 1;
                     break;
                 }
             }
+            mpz_clear(x_minus_one);
             if(!condition2) 
             {
                 return 0; //x is composite
             }
         }
-       
     }
     free(sequence);
     return 1; //x is probably prime
