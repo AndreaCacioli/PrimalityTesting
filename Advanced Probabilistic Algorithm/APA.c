@@ -182,7 +182,6 @@ int test(mpz_t x, long k, int* length_of_sequence)
             }
         }
     }
-    printf("cleaning...\n");
     mpz_clear(x_minus_one);
     mpz_clear(x_copy);
     mpz_clear(a);
