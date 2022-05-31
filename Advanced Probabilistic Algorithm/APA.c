@@ -16,6 +16,7 @@ int main(int argc, char const *argv[])
     mpz_t end;
     mpz_t step;
     int save = 0;
+    int noHeader = 0;
     int lenseq = 0;
     if(argc < 5)
     {
@@ -70,7 +71,9 @@ int main(int argc, char const *argv[])
             else if(strcmp("-s", argv[i]) == 0){
                 save = 1;
             }
-            
+            else if(strcmp("-nh", argv[i]) == 0){
+                noHeader = 1;
+            } 
             else{
                 puts(message);
                 exit(0);
@@ -92,7 +95,7 @@ int main(int argc, char const *argv[])
         }
     } 
 
-    if(save) gmp_fprintf(file,"Input, Time In Microseconds, isPrime, Sequence Length\n");
+    if(save && !noHeader) gmp_fprintf(file,"Input, Time In Microseconds, isPrime, Sequence Length\n");
     while(mpz_cmp(start, end) <= 0)
     {
         
@@ -141,6 +144,7 @@ int test(mpz_t x, long k, int* length_of_sequence)
 {
     int ret = 1;
     *length_of_sequence = 0;
+    if(mpz_cmp_ui(x,2) <= 0) return 0;
     if(mpz_cmp_ui(x,2) == 0) return 1;
     else if(mpz_tstbit(x, 0) == 0) return 0;
     int number_of_subdivisions;
