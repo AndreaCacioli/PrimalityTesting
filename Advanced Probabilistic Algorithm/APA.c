@@ -8,8 +8,10 @@ int test(mpz_t x, long k, int* length_of_sequence);
 
 int main(int argc, char const *argv[])
 {
-    char* message = "Welcome to the Primality Test, please follow this syntax:\n\t-x Per indicare il valore da testare.\n\t-t per indicare il numero di test da superare per poter essere considerato primo.\n\t-r Per indicare che si vuole operare su un insieme di valori [start] [finish] [step]\n\t-s Per salvare il tempo di esecuzione in un file .csv";
+    char* message = "Benvenuta/o nel Primality Test, si prega di seguire questa sintassi:\n\t-x Per indicare il valore da testare.\n\t-t per indicare il numero di test da superare per poter essere considerato primo.\n\t-r Per indicare che si vuole operare su un insieme di valori [start] [finish] [step]\n\t-s Per salvare il tempo di esecuzione e i risultati in un file .csv\n\t-b Per specificare le cifre decimali di partenza e quelle di fine [start] [finish] \n";
     int t = 8;
+    int startPlaces = -1;
+    int endPlaces = -1;
     mpz_t start;
     mpz_t end;
     mpz_t step;
@@ -39,6 +41,31 @@ int main(int argc, char const *argv[])
                 mpz_init_set_str(start, argv[++i], 10);
                 mpz_init_set_str(end, argv[++i], 10);
                 mpz_init_set_str(step, argv[++i], 10);
+            }
+            else if(strcmp("-b", argv[i]) == 0){
+                startPlaces = atoi(argv[++i]);
+                endPlaces = atoi(argv[++i]);
+                //initialize start and end variable
+                char* str1 = malloc(sizeof(char) * startPlaces);
+                char* str2 = malloc(sizeof(char) * endPlaces);
+
+                time_t t;
+                srand((unsigned) time(&t));
+                for(int i = 0; i < startPlaces; i++)
+                {
+                    str1[i] = rand() % 2 + '0';
+                }
+                for(int i = 0; i < endPlaces; i++)
+                {
+                    str2[i] = rand() % 2 + '0';
+                }
+                
+                mpz_init_set_str(start, str1, 2);
+                mpz_init_set_str(end, str2, 2);
+                mpz_init_set_ui(step, 0);
+
+                free(str1);
+                free(str2);
             }
             else if(strcmp("-s", argv[i]) == 0){
                 save = 1;
@@ -81,7 +108,16 @@ int main(int argc, char const *argv[])
             gmp_fprintf(file,"%Zd,%d,%d,%d\n",start, timeInMicroiseconds, ret, lenseq);
             fflush(file);
         }
-        mpz_add(start, start, step);
+
+        if(startPlaces == -1)
+        {
+            mpz_add(start, start, step);
+        }
+        else
+        {
+            mpz_mul_ui(start, start, 2);
+            mpz_add_ui(start, start, 1);
+        }
     }
     if(save) fclose(file);
 
