@@ -10,6 +10,7 @@ int main(int argc, char const *argv[])
 {
     char* message = "Benvenuta/o nel Primality Test, si prega di seguire questa sintassi:\n\t-x Per indicare il valore da testare.\n\t-t per indicare il numero di test da superare per poter essere considerato primo.\n\t-r Per indicare che si vuole operare su un insieme di valori [start] [finish] [step]\n\t-s Per salvare il tempo di esecuzione e i risultati in un file .csv\n\t-b Per specificare le cifre decimali di partenza e quelle di fine [start] [finish] \n";
     int t = 8;
+    const char* file_name;
     int startPlaces = -1;
     int endPlaces = -1;
     mpz_t start;
@@ -74,6 +75,9 @@ int main(int argc, char const *argv[])
             else if(strcmp("-nh", argv[i]) == 0){
                 noHeader = 1;
             } 
+            else if(strcmp("-f", argv[i]) == 0){
+                file_name = argv[++i];
+            } 
             else{
                 puts(message);
                 exit(0);
@@ -86,12 +90,10 @@ int main(int argc, char const *argv[])
     FILE *file;
     if(save)
     {
-        char str[10000];
-        gmp_sprintf(str, "./APAResults-%Zd-%Zd-%Zd.csv", start, end, step);
-        file = fopen(str, "w");
+        file = fopen(file_name, "a");
         if(file == NULL){
             printf("An error while opening the file occurred.\n");
-            file = fopen("NameTooLong.csv", "w");
+            file = fopen("NameTooLong.csv", "a");
         }
     } 
 
